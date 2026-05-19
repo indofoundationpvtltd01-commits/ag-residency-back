@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AG Residency — Booking Confirmed</title>
+<style>
+  body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background: #F8F5F0; }
+  .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  .header { background: #1A3C5E; padding: 40px 32px; text-align: center; }
+  .header h1 { color: #C9963F; font-family: Georgia, serif; font-size: 28px; margin: 0 0 4px; }
+  .header p { color: rgba(255,255,255,0.7); margin: 0; font-size: 14px; }
+  .badge { display: inline-block; background: #16A34A; color: #fff; padding: 6px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 24px 0 0; }
+  .body { padding: 32px; }
+  .greeting { font-size: 16px; color: #1C1C1E; margin-bottom: 24px; }
+  .card { background: #F8F5F0; border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+  .card-title { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #6B7280; margin: 0 0 16px; }
+  .row { display: flex; justify-content: space-between; margin-bottom: 12px; }
+  .label { color: #6B7280; font-size: 14px; }
+  .value { color: #1C1C1E; font-size: 14px; font-weight: 600; }
+  .amount { font-size: 24px; font-weight: 700; color: #1A3C5E; text-align: center; margin: 16px 0 0; }
+  .divider { border: none; border-top: 1px solid #E5E7EB; margin: 16px 0; }
+  .cta { text-align: center; margin: 24px 0; }
+  .btn { display: inline-block; background: #C9963F; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 15px; }
+  .footer { background: #1A3C5E; padding: 24px 32px; text-align: center; }
+  .footer p { color: rgba(255,255,255,0.6); font-size: 12px; margin: 4px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>AG Residency</h1>
+    <p>Premium Hospitality Experience</p>
+    <div class="badge">✓ Booking Confirmed</div>
+  </div>
+  <div class="body">
+    <p class="greeting">Dear {{guestName}},<br><br>Your booking has been confirmed! We look forward to welcoming you at <strong>{{hotelName}}</strong>.</p>
+    <div class="card">
+      <div class="card-title">Booking Details</div>
+      <div class="row"><span class="label">Booking ID</span><span class="value">#{{bookingId}}</span></div>
+      <div class="row"><span class="label">Hotel</span><span class="value">{{hotelName}}</span></div>
+      <div class="row"><span class="label">Check-In</span><span class="value">{{checkIn}}</span></div>
+      <div class="row"><span class="label">Check-Out</span><span class="value">{{checkOut}}</span></div>
+      <div class="row"><span class="label">Duration</span><span class="value">{{nights}} Night(s)</span></div>
+      <hr class="divider">
+      <div class="amount">₹{{totalAmount}}</div>
+      <p style="text-align:center;color:#6B7280;font-size:13px;margin:4px 0 0;">Total Amount</p>
+    </div>
+    <div class="cta"><a href="{{clientUrl}}/dashboard/bookings" class="btn">View My Booking</a></div>
+    <p style="color:#6B7280;font-size:13px;text-align:center;">Questions? Contact us at agresidency@gmail.com</p>
+  </div>
+  <div class="footer">
+    <p>AG Residency | Premium Hospitality</p>
+    <p>© 2025 AG Residency. All rights reserved.</p>
+  </div>
+</div>
+</body></html>

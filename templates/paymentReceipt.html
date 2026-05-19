@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Payment Receipt — AG Residency</title>
+<style>
+  body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background: #F8F5F0; }
+  .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  .header { background: #1A3C5E; padding: 32px; text-align: center; }
+  .header h1 { color: #C9963F; font-family: Georgia, serif; font-size: 26px; margin: 0 0 4px; }
+  .header p { color: rgba(255,255,255,0.6); font-size: 13px; margin: 0; }
+  .body { padding: 32px; }
+  .receipt-title { font-size: 18px; font-weight: 700; color: #1A3C5E; margin-bottom: 20px; }
+  .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F0F0F0; }
+  .label { color: #6B7280; font-size: 14px; }
+  .value { color: #1C1C1E; font-size: 14px; font-weight: 600; }
+  .total-row { display: flex; justify-content: space-between; background: #1A3C5E; color: #fff; padding: 16px; border-radius: 8px; margin-top: 16px; }
+  .total-label { font-size: 15px; font-weight: 600; }
+  .total-value { font-size: 20px; font-weight: 700; color: #C9963F; }
+  .footer { background: #1A3C5E; padding: 20px 32px; text-align: center; }
+  .footer p { color: rgba(255,255,255,0.5); font-size: 12px; margin: 2px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>AG Residency</h1>
+    <p>Official Payment Receipt</p>
+  </div>
+  <div class="body">
+    <div class="receipt-title">Payment Receipt</div>
+    <div class="row"><span class="label">Receipt Date</span><span class="value">{{date}}</span></div>
+    <div class="row"><span class="label">Payment ID</span><span class="value">{{paymentId}}</span></div>
+    <div class="row"><span class="label">Booking ID</span><span class="value">#{{bookingId}}</span></div>
+    <div class="row"><span class="label">Hotel</span><span class="value">{{hotelName}}</span></div>
+    <div class="row"><span class="label">Guest Name</span><span class="value">{{guestName}}</span></div>
+    <div class="row"><span class="label">Check-In</span><span class="value">{{checkIn}}</span></div>
+    <div class="row"><span class="label">Check-Out</span><span class="value">{{checkOut}}</span></div>
+    <div class="row"><span class="label">Duration</span><span class="value">{{nights}} Night(s)</span></div>
+    <div class="total-row">
+      <span class="total-label">Amount Paid</span>
+      <span class="total-value">₹{{amount}}</span>
+    </div>
+    <p style="color:#6B7280;font-size:12px;margin-top:16px;text-align:center;">This is a computer-generated receipt and does not require a signature.</p>
+  </div>
+  <div class="footer"><p>AG Residency | © 2025 All rights reserved.</p></div>
+</div>
+</body></html>
