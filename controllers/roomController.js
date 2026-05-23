@@ -1,8 +1,16 @@
+const mongoose = require('mongoose');
 const Room = require('../models/Room');
 const Booking = require('../models/Booking');
 const Hotel = require('../models/Hotel');
 const cloudinary = require('../config/cloudinary');
 const { AppError } = require('../middleware/errorHandler');
+
+const validateRoomId = (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return next(new AppError('Room not found', 404));
+  }
+  next();
+};
 
 // @GET /api/v1/rooms/hotel/:hotelId
 const getRoomsByHotel = async (req, res, next) => {
@@ -93,6 +101,14 @@ const updateHotelMinPrice = async (hotelId) => {
 // @POST /api/v1/rooms/hotel/:hotelId
 const createRoom = async (req, res, next) => {
   try {
+    if (!req.params.hotelId || req.params.hotelId === 'undefined') {
+      return next(new AppError('No hotel assigned. Please assign a hotel first.', 400));
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.hotelId)) {
+      return next(new AppError('Invalid hotel identifier.', 400));
+    }
+
     const hotel = await Hotel.findById(req.params.hotelId);
     if (!hotel) return next(new AppError('Hotel not found', 404));
 
@@ -114,17 +130,19 @@ const createRoom = async (req, res, next) => {
 // @PUT /api/v1/rooms/:id
 const updateRoom = async (req, res, next) => {
   try {
-    const room = await Room.findById(req.params.id).populate('hotel');
+    const room = await Room.findById(req.params.id);
     if (!room) return next(new AppError('Room not found', 404));
 
     // Handle both populated and unpopulated assignedHotel
     const userAssignedHotelId = req.user.assignedHotel?._id?.toString() || req.user.assignedHotel?.toString();
 
-    if (req.user.role === 'hotel_admin' && room.hotel._id.toString() !== userAssignedHotelId) {
+    if (req.user.role === 'hotel_admin' && (!room.hotel || room.hotel.toString() !== userAssignedHotelId)) {
       return next(new AppError('Access denied', 403));
     }
     const updated = await Room.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    await updateHotelMinPrice(room.hotel._id);
+    if (room.hotel) {
+      await updateHotelMinPrice(room.hotel);
+    }
     res.json({ success: true, data: updated });
   } catch (err) {
     next(err);
@@ -134,13 +152,13 @@ const updateRoom = async (req, res, next) => {
 // @DELETE /api/v1/rooms/:id
 const deleteRoom = async (req, res, next) => {
   try {
-    const room = await Room.findById(req.params.id).populate('hotel');
+    const room = await Room.findById(req.params.id);
     if (!room) return next(new AppError('Room not found', 404));
 
     // Hotel admin can only delete their own rooms
     const userAssignedHotelId = req.user.assignedHotel?._id?.toString() || req.user.assignedHotel?.toString();
     
-    if (req.user.role === 'hotel_admin' && room.hotel._id.toString() !== userAssignedHotelId) {
+    if (req.user.role === 'hotel_admin' && (!room.hotel || room.hotel.toString() !== userAssignedHotelId)) {
       return next(new AppError('Access denied: not your hotel', 403));
     }
 
@@ -162,7 +180,9 @@ const deleteRoom = async (req, res, next) => {
       }
     }
     await room.deleteOne();
-    await updateHotelMinPrice(room.hotel._id);
+    if (room.hotel) {
+      await updateHotelMinPrice(room.hotel);
+    }
     res.json({ success: true, message: 'Room deleted' });
   } catch (err) {
     next(err);
@@ -189,9 +209,19 @@ const toggleRoomAvailability = async (req, res, next) => {
   try {
     const room = await Room.findById(req.params.id);
     if (!room) return next(new AppError('Room not found', 404));
+
+    // Handle both populated and unpopulated assignedHotel
+    const userAssignedHotelId = req.user.assignedHotel?._id?.toString() || req.user.assignedHotel?.toString();
+
+    if (req.user.role === 'hotel_admin' && (!room.hotel || room.hotel.toString() !== userAssignedHotelId)) {
+      return next(new AppError('Access denied', 403));
+    }
+
     room.isAvailable = !room.isAvailable;
     await room.save();
-    await updateHotelMinPrice(room.hotel);
+    if (room.hotel) {
+      await updateHotelMinPrice(room.hotel);
+    }
     res.json({ success: true, message: `Room ${room.isAvailable ? 'enabled' : 'disabled'}`, data: room });
   } catch (err) {
     next(err);
@@ -294,4 +324,4 @@ const getRoomBookedDates = async (req, res, next) => {
   }
 };
 
-module.exports = { getRoomsByHotel, getRoomById, checkRoomAvailability, createRoom, updateRoom, deleteRoom, uploadRoomImages, toggleRoomAvailability, checkAvailability, getHotelAvailabilityCalendar, getRoomBookedDates };
+module.exports = { getRoomsByHotel, getRoomById, checkRoomAvailability, createRoom, updateRoom, deleteRoom, uploadRoomImages, toggleRoomAvailability, checkAvailability, getHotelAvailabilityCalendar, getRoomBookedDates, validateRoomId };

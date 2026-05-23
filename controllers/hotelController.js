@@ -238,7 +238,34 @@ const deleteHotel = async (req, res, next) => {
   try {
     const hotel = await Hotel.findById(req.params.id);
     if (!hotel) return next(new AppError('Hotel not found', 404));
-    // Delete Cloudinary images gracefully
+
+    // 1. Delete all rooms associated with this hotel along with their images
+    const rooms = await Room.find({ hotel: hotel._id });
+    for (const room of rooms) {
+      for (const img of room.images) {
+        if (img.publicId) {
+          const isLocal = !img.publicId.includes('/') && img.publicId.includes('.');
+          if (isLocal) {
+            const fs = require('fs');
+            const path = require('path');
+            const filePath = path.join(__dirname, '../uploads', img.publicId);
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+          } else {
+            try {
+              await cloudinary.uploader.destroy(img.publicId);
+            } catch (err) {
+              console.warn(`Failed to delete room image ${img.publicId} from Cloudinary:`, err.message);
+            }
+          }
+        }
+      }
+      await room.deleteOne();
+    }
+
+    // 2. Unassign users from this hotel to prevent login/dashboard errors
+    await User.updateMany({ assignedHotel: hotel._id }, { $unset: { assignedHotel: 1 } });
+
+    // 3. Delete Cloudinary images for the hotel gracefully
     for (const img of hotel.images) {
       if (img.publicId) {
         try {
@@ -249,7 +276,7 @@ const deleteHotel = async (req, res, next) => {
       }
     }
     await hotel.deleteOne();
-    res.json({ success: true, message: 'Hotel deleted successfully' });
+    res.json({ success: true, message: 'Hotel and all associated rooms deleted successfully' });
   } catch (err) {
     next(err);
   }
