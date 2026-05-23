@@ -4,7 +4,9 @@ const router = express.Router();
 
 router.get('/sitemap.xml', async (req, res) => {
   try {
-    const baseUrl = process.env.CLIENT_URL || 'https://www.agrooms.in';
+    // Sanitize baseUrl to ensure no trailing slashes exist, preventing double slashes
+    const rawBaseUrl = process.env.CLIENT_URL || 'https://www.agrooms.in';
+    const baseUrl = rawBaseUrl.replace(/\/+$/, '');
     const hotels = await Hotel.find({ isActive: true }).select('slug updatedAt createdAt');
 
     let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
