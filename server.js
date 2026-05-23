@@ -137,10 +137,65 @@ app.use('/uploads', express.static(uploadsDir));
 
 // Root route
 app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "AG Residency Backend Live Successfully 🚀"
-  });
+  res.setHeader('Content-Type', 'text/html');
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AG Residency API</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0f172a;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    .card {
+      background: #111827;
+      padding: 50px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+      max-width: 500px;
+      width: 90%;
+    }
+    h1 {
+      font-size: 36px;
+      margin-bottom: 15px;
+    }
+    p {
+      font-size: 18px;
+      color: #cbd5e1;
+      margin-bottom: 10px;
+    }
+    .status {
+      margin-top: 20px;
+      color: #22c55e;
+      font-weight: bold;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>AG Residency API 🚀</h1>
+    <p>Enterprise Backend Infrastructure</p>
+    <p>Secure Railway Deployment Active</p>
+    <div class="status">
+      🔒 Backend Running Securely
+    </div>
+  </div>
+</body>
+</html>`);
 });
 
 // Health check
