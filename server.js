@@ -25,8 +25,10 @@ const seoRoutes = require('./routes/seoRoutes');
 
 const app = express();
 
+app.disable('x-powered-by');
+
 // Trust proxy for secure cookies and protocol detection
-app.set('trust proxy', 1);
+app.enable('trust proxy');
 
 // Connect DB
 connectDB();
@@ -36,6 +38,23 @@ app.use(compression());
 
 // Security middleware
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+// HSTS strict transport security
+app.use(
+  helmet.hsts({
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  })
+);
+
+// Force HTTPS redirection (only when behind a proxy like Railway that sends x-forwarded-proto)
+app.use((req, res, next) => {
+  if (req.header('x-forwarded-proto') && req.header('x-forwarded-proto') !== 'https') {
+    return res.redirect(`https://${req.header('host')}${req.url}`);
+  }
+  next();
+});
 app.use(mongoSanitize());
 app.use(hpp());
 

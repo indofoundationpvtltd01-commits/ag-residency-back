@@ -2042,3 +2042,10 @@
 {"level":"info","message":"🚀 AG Residency API server running on port 5000 [development]","timestamp":"2026-05-23 14:29:19"}
 {"level":"info","message":"✅ MongoDB Connected: ac-iumubpl-shard-00-00.ddg6ths.mongodb.net","timestamp":"2026-05-23 14:29:19"}
 {"level":"info","message":"📁 Database Name: ag_residency","timestamp":"2026-05-23 14:29:19"}
+{"level":"info","message":"::1 - - [23/May/2026:09:43:19 +0000] \"GET /api/v1/hotels?limit=3 HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\"","timestamp":"2026-05-23 15:13:19"}
+{"level":"info","message":"🚀 AG Residency API server running on port 5000 [development]","timestamp":"2026-05-23 15:33:30"}
+{"level":"info","message":"✅ MongoDB Connected: ac-iumubpl-shard-00-00.ddg6ths.mongodb.net","timestamp":"2026-05-23 15:33:30"}
+{"level":"info","message":"📁 Database Name: ag_residency","timestamp":"2026-05-23 15:33:30"}
+{"level":"info","message":"🚀 AG Residency API server running on port 5000 [development]","timestamp":"2026-05-23 15:33:48"}
+{"level":"info","message":"✅ MongoDB Connected: ac-iumubpl-shard-00-00.ddg6ths.mongodb.net","timestamp":"2026-05-23 15:33:49"}
+{"level":"info","message":"📁 Database Name: ag_residency","timestamp":"2026-05-23 15:33:49"}
