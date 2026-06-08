@@ -39,6 +39,8 @@ const login = async (req, res, next) => {
   try {
     let { email, password } = req.body;
     
+    console.log(`🔑 Login attempt: "${email}" | password length: ${password ? password.length : 0}`);
+    
     // Normalize short usernames to standard seeded email addresses for seamless UX
     if (email) {
       const trimmed = email.trim().toLowerCase();

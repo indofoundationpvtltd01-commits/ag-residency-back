@@ -21,6 +21,7 @@ const roomRoutes = require('./routes/roomRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const galleryRoutes = require('./routes/galleryRoutes');
 const seoRoutes = require('./routes/seoRoutes');
 
 const app = express();
@@ -125,6 +126,7 @@ app.use('/api/v1/rooms', roomRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/gallery', galleryRoutes);
 
 // SEO Routes (Dynamic Sitemap)
 app.use('/', seoRoutes);

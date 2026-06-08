@@ -10,7 +10,9 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 const seedData = async () => {
   try {
     // 1. Connect to Database
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI, {
+      dbName: process.env.DB_NAME || 'ag_residency'
+    });
     console.log('🚀 Connected to MongoDB for seeding...');
 
     // 2. Clear existing data
