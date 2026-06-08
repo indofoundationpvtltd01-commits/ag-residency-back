@@ -2834,3 +2834,15 @@
 {"level":"info","message":"🚀 Notification Queue Processor initiated successfully.","timestamp":"2026-06-08 11:33:03"}
 {"level":"info","message":"✅ MongoDB Connected: ac-oapwgu3-shard-00-00.z3opkyi.mongodb.net","timestamp":"2026-06-08 11:33:04"}
 {"level":"info","message":"📁 Active Database: ag_residency","timestamp":"2026-06-08 11:33:04"}
+{"level":"info","message":"☁️ Cloudinary CDN: Active [Cloud Name: dxncaur7i]","timestamp":"2026-06-08 11:52:22"}
+{"level":"info","message":"🔌 Connecting to Database URI: mongodb:******@ac-oapwgu3-shard-00-00.z3opkyi.mongodb.net:27017,ac-oapwgu3-shard-00-01.z3opkyi.mongodb.net:27017,ac-oapwgu3-shard-00-02.z3opkyi.mongodb.net:27017/?ssl=true&replicaSet=atlas-vrs7b8-shard-0&authSource=admin&appName=Cluster0","timestamp":"2026-06-08 11:52:22"}
+{"level":"info","message":"🚀 AG Residency API server running on port 5000 [production]","timestamp":"2026-06-08 11:52:22"}
+{"level":"info","message":"🚀 Notification Queue Processor initiated successfully.","timestamp":"2026-06-08 11:52:22"}
+{"level":"info","message":"✅ MongoDB Connected: ac-oapwgu3-shard-00-00.z3opkyi.mongodb.net","timestamp":"2026-06-08 11:52:22"}
+{"level":"info","message":"📁 Active Database: ag_residency","timestamp":"2026-06-08 11:52:22"}
+{"level":"info","message":"☁️ Cloudinary CDN: Active [Cloud Name: dxncaur7i]","timestamp":"2026-06-08 11:52:30"}
+{"level":"info","message":"🔌 Connecting to Database URI: mongodb:******@ac-oapwgu3-shard-00-00.z3opkyi.mongodb.net:27017,ac-oapwgu3-shard-00-01.z3opkyi.mongodb.net:27017,ac-oapwgu3-shard-00-02.z3opkyi.mongodb.net:27017/?ssl=true&replicaSet=atlas-vrs7b8-shard-0&authSource=admin&appName=Cluster0","timestamp":"2026-06-08 11:52:30"}
+{"level":"info","message":"🚀 AG Residency API server running on port 5000 [production]","timestamp":"2026-06-08 11:52:30"}
+{"level":"info","message":"🚀 Notification Queue Processor initiated successfully.","timestamp":"2026-06-08 11:52:30"}
+{"level":"info","message":"✅ MongoDB Connected: ac-oapwgu3-shard-00-00.z3opkyi.mongodb.net","timestamp":"2026-06-08 11:52:31"}
+{"level":"info","message":"📁 Active Database: ag_residency","timestamp":"2026-06-08 11:52:31"}

@@ -5,6 +5,7 @@ const Settings = require('../models/Settings');
 const { checkAvailability } = require('./roomController');
 const { queueEmail, queueSMS } = require('../utils/notificationQueue');
 const { AppError } = require('../middleware/errorHandler');
+const { razorpay } = require('../utils/razorpayHelper');
 
 // @POST /api/v1/bookings
 const createBooking = async (req, res, next) => {
@@ -35,7 +36,10 @@ const createBooking = async (req, res, next) => {
 
     // Check payment method against global settings
     const settings = await Settings.findOne();
-    const allowedMethod = settings?.allowedPaymentMethod || 'both';
+    let allowedMethod = settings?.allowedPaymentMethod || 'both';
+    if (!razorpay) {
+      allowedMethod = 'hotel';
+    }
     const resolvedPaymentMethod = paymentMethod || 'Online';
 
     if (allowedMethod !== 'both') {
@@ -394,7 +398,11 @@ const updatePaymentStatus = async (req, res, next) => {
 const getPaymentSettings = async (req, res, next) => {
   try {
     const settings = await Settings.findOne();
-    res.json({ success: true, data: { allowedPaymentMethod: settings?.allowedPaymentMethod || 'both' } });
+    let allowedPaymentMethod = settings?.allowedPaymentMethod || 'both';
+    if (!razorpay) {
+      allowedPaymentMethod = 'hotel';
+    }
+    res.json({ success: true, data: { allowedPaymentMethod } });
   } catch (err) {
     next(err);
   }
