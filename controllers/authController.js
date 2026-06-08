@@ -37,7 +37,16 @@ const register = async (req, res, next) => {
 // @POST /api/v1/auth/login
 const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+    
+    // Normalize short usernames to standard seeded email addresses for seamless UX
+    if (email) {
+      const trimmed = email.trim().toLowerCase();
+      if (trimmed === 'superadmin') email = 'superadmin@agresidency.com';
+      else if (trimmed === 'manager') email = 'manager@agresidency.com';
+      else if (trimmed === 'guest') email = 'guest@gmail.com';
+    }
+
     const user = await User.findOne({ email }).select('+password');
     if (!user || !(await user.comparePassword(password))) {
       return next(new AppError('Invalid email or password', 401));

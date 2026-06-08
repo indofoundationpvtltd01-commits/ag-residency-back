@@ -18,8 +18,20 @@ const hotelSchema = new mongoose.Schema({
   },
   starRating: { type: Number, min: 1, max: 5, default: 3 },
   amenities: [{ type: String }],
-  images: [{ url: String, publicId: String }],
-  coverImage: { url: String, publicId: String },
+  images: [{
+    publicId: String,
+    original: String,
+    large: String,
+    medium: String,
+    thumbnail: String
+  }],
+  coverImage: {
+    publicId: String,
+    original: String,
+    large: String,
+    medium: String,
+    thumbnail: String
+  },
   location: {
     type: { 
       type: String, 
@@ -57,6 +69,16 @@ hotelSchema.pre('save', function (next) {
       .replace(/\s+/g, '-')
       .trim();
   }
+  
+  // Auto-set coverImage if not present and images exist
+  if (this.images && this.images.length > 0) {
+    if (!this.coverImage || !this.coverImage.original) {
+      this.coverImage = this.images[0];
+    }
+  } else {
+    this.coverImage = undefined;
+  }
+  
   next();
 });
 

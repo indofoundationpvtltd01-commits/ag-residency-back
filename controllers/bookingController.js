@@ -3,7 +3,7 @@ const Room = require('../models/Room');
 const Hotel = require('../models/Hotel');
 const Settings = require('../models/Settings');
 const { checkAvailability } = require('./roomController');
-const { sendEmail } = require('../utils/sendEmail');
+const { queueEmail, queueSMS } = require('../utils/notificationQueue');
 const { AppError } = require('../middleware/errorHandler');
 
 // @POST /api/v1/bookings
@@ -24,7 +24,8 @@ const createBooking = async (req, res, next) => {
       source,
       paymentMethod,
       cashAmount,
-      upiAmount
+      upiAmount,
+      documentType
     } = req.body;
 
     const checkInDate = new Date(checkIn);
@@ -68,8 +69,8 @@ const createBooking = async (req, res, next) => {
     const BASE_ADULTS = 2;
 
     const baseRoomTotal = roomDoc.pricePerNight * nights;
-    const curAdults = adults || 1;
-    const curChildren = children || 0;
+    const curAdults = adults ? Number(adults) : 1;
+    const curChildren = children ? Number(children) : 0;
     const extraAdultsCount = Math.max(0, curAdults - BASE_ADULTS);
     const extraAdultCharges = extraAdultsCount * EXTRA_ADULT_CHARGE * nights;
     const childCharges = curChildren * CHILD_CHARGE * nights;
@@ -80,6 +81,17 @@ const createBooking = async (req, res, next) => {
 
     const approvalMode = hotelDoc.approvalMode || 'manual';
 
+    let residentProof = null;
+    if (req.uploadedImages) {
+      residentProof = {
+        url: req.uploadedImages.original || req.uploadedImages.url,
+        publicId: req.uploadedImages.publicId,
+        documentType: documentType || 'aadhaar',
+        verified: false,
+        uploadedAt: new Date()
+      };
+    }
+
     const booking = await Booking.create({
       hotel,
       room: roomId,
@@ -89,7 +101,7 @@ const createBooking = async (req, res, next) => {
       nights,
       adults: curAdults,
       children: curChildren,
-      numberOfGuests: numberOfGuests || (curAdults + curChildren),
+      numberOfGuests: numberOfGuests ? Number(numberOfGuests) : (curAdults + curChildren),
       pricePerNight: roomDoc.pricePerNight,
       totalAmount,
       approvalMode,
@@ -100,17 +112,17 @@ const createBooking = async (req, res, next) => {
       specialRequests,
       source: source || 'online',
       paymentMethod: paymentMethod || 'Online',
-      cashAmount: cashAmount || 0,
-      upiAmount: upiAmount || 0,
-      residentProof: req.uploadedImages || null,
+      cashAmount: cashAmount ? Number(cashAmount) : 0,
+      upiAmount: upiAmount ? Number(upiAmount) : 0,
+      residentProof,
       taxRate: hotelDoc.taxRate || 0.12,
     });
 
-    // Notify hotel admin
+    // Queue admin notification email asynchronously
     if (hotelDoc && hotelDoc.managedBy) {
       const adminUser = await require('../models/User').findById(hotelDoc.managedBy);
       if (adminUser) {
-        sendEmail({
+        queueEmail({
           to: adminUser.email,
           subject: `New Booking — ${hotelDoc.name}`,
           templateName: 'adminNotification.html',
@@ -124,6 +136,14 @@ const createBooking = async (req, res, next) => {
             bookingId: booking._id.toString(),
           },
         }).catch(() => {});
+
+        // Queue admin notification SMS
+        if (adminUser.phone) {
+          queueSMS({
+            to: adminUser.phone,
+            body: `Alert: New booking created at ${hotelDoc.name} by ${booking.guestName}. Check-in: ${checkInDate.toDateString()}. ID: ${booking._id.toString().substring(18).toUpperCase()}`
+          }).catch(() => {});
+        }
       }
     }
 
@@ -185,7 +205,8 @@ const cancelBooking = async (req, res, next) => {
     booking.cancelReason = req.body.reason || 'Cancelled by customer';
     await booking.save();
 
-    sendEmail({
+    // Queue cancellation email asynchronously
+    queueEmail({
       to: booking.guestEmail,
       subject: 'AG Residency — Booking Cancelled',
       templateName: 'bookingCancellation.html',
@@ -197,6 +218,14 @@ const cancelBooking = async (req, res, next) => {
         refundStatus: booking.paymentStatus === 'paid' ? 'A refund will be initiated within 5-7 business days.' : 'No payment was made.',
       },
     }).catch(() => {});
+
+    // Queue cancellation SMS
+    if (booking.guestPhone) {
+      queueSMS({
+        to: booking.guestPhone,
+        body: `Dear ${booking.guestName}, your reservation at ${booking.hotel?.name || 'AG Residency'} has been cancelled successfully. ID: ${booking._id.toString().substring(18).toUpperCase()}.`
+      }).catch(() => {});
+    }
 
     res.json({ success: true, message: 'Booking cancelled', data: booking });
   } catch (err) {
@@ -242,7 +271,8 @@ const approveBooking = async (req, res, next) => {
     booking.status = 'confirmed';
     await booking.save();
 
-    sendEmail({
+    // Queue confirmation email asynchronously
+    queueEmail({
       to: booking.guestEmail,
       subject: 'AG Residency — Booking Confirmed!',
       templateName: 'bookingConfirmation.html',
@@ -257,6 +287,14 @@ const approveBooking = async (req, res, next) => {
         clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
       },
     }).catch(() => {});
+
+    // Queue confirmation SMS
+    if (booking.guestPhone) {
+      queueSMS({
+        to: booking.guestPhone,
+        body: `Dear ${booking.guestName}, your booking at ${booking.hotel.name} is confirmed! Check-in: ${booking.checkIn.toDateString()}. ID: ${booking._id.toString().substring(18).toUpperCase()}`
+      }).catch(() => {});
+    }
 
     res.json({ success: true, message: 'Booking approved', data: booking });
   } catch (err) {
@@ -362,4 +400,36 @@ const getPaymentSettings = async (req, res, next) => {
   }
 };
 
-module.exports = { createBooking, getMyBookings, getBookingById, cancelBooking, getHotelBookings, approveBooking, rejectBooking, getAllBookings, updatePaymentStatus, getPaymentSettings };
+const verifyBookingDocument = async (req, res, next) => {
+  try {
+    const { verified } = req.body;
+    if (typeof verified !== 'boolean') {
+      return next(new AppError('Verified status must be a boolean', 400));
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return next(new AppError('Booking not found', 404));
+
+    // Permission check for hotel_admin
+    if (req.user.role === 'hotel_admin') {
+      const assignedHotelId = req.user.assignedHotel?._id?.toString() || req.user.assignedHotel?.toString();
+      if (booking.hotel.toString() !== assignedHotelId) {
+        return next(new AppError('Access denied: You can only verify documents for bookings in your assigned hotel', 403));
+      }
+    }
+
+    if (!booking.residentProof || !booking.residentProof.url) {
+      return next(new AppError('No resident proof uploaded for this booking', 400));
+    }
+
+    booking.residentProof.verified = verified;
+    booking.residentProof.uploadedAt = booking.residentProof.uploadedAt || new Date();
+    await booking.save();
+
+    res.json({ success: true, message: `Document verification status updated to ${verified}`, data: booking });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { createBooking, getMyBookings, getBookingById, cancelBooking, getHotelBookings, approveBooking, rejectBooking, getAllBookings, updatePaymentStatus, getPaymentSettings, verifyBookingDocument };

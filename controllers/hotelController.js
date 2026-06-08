@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Room = require('../models/Room');
 const Booking = require('../models/Booking');
 const HotelUpdate = require('../models/HotelUpdate');
+const Review = require('../models/Review');
 const cloudinary = require('../config/cloudinary');
 const ApiFeatures = require('../utils/apiFeatures');
 const { AppError } = require('../middleware/errorHandler');
@@ -52,7 +53,34 @@ const getHotelBySlug = async (req, res, next) => {
     const hotel = await Hotel.findOne({ slug: req.params.slug, isActive: true }).populate('managedBy', 'name email');
     if (!hotel) return next(new AppError('Hotel not found', 404));
     const rooms = await Room.find({ hotel: hotel._id, isAvailable: true });
-    res.json({ success: true, data: { ...hotel.toObject(), rooms } });
+    
+    // Fetch approved customer reviews
+    const reviews = await Review.find({ hotel: hotel._id, status: 'approved' })
+      .populate('customer', 'name email')
+      .sort({ createdAt: -1 });
+
+    // Compute dynamic aggregate ratings
+    let ratingValue = hotel.starRating || 5;
+    const reviewCount = reviews.length;
+    if (reviewCount > 0) {
+      const totalSum = reviews.reduce((sum, r) => sum + r.rating, 0);
+      ratingValue = Math.round((totalSum / reviewCount) * 10) / 10;
+    }
+
+    const aggregateRating = {
+      ratingValue: ratingValue.toString(),
+      reviewCount: reviewCount.toString()
+    };
+
+    res.json({ 
+      success: true, 
+      data: { 
+        ...hotel.toObject(), 
+        rooms, 
+        reviews,
+        aggregateRating 
+      } 
+    });
   } catch (err) {
     next(err);
   }
@@ -136,7 +164,9 @@ const updateHotel = async (req, res, next) => {
     }
 
     // Super Admin logic: Update Hotel and possibly Manager
-    const updated = await Hotel.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
+    Object.assign(hotel, updateData);
+    await hotel.save();
+    const updated = hotel;
 
     // Synchronization of Manager Access
     if (managerEmail) {
@@ -291,7 +321,10 @@ const uploadHotelImages = async (req, res, next) => {
     if (!hotel) return next(new AppError('Hotel not found', 404));
 
     hotel.images.push(...newImages);
-    if (!hotel.coverImage?.url) hotel.coverImage = newImages[0];
+    if (!hotel.coverImage || !hotel.coverImage.original) {
+      hotel.coverImage = hotel.images[0];
+      hotel.markModified('coverImage');
+    }
     await hotel.save();
 
     res.json({ success: true, message: 'Images uploaded', data: hotel });
@@ -323,6 +356,10 @@ const deleteHotelImage = async (req, res, next) => {
     }
 
     hotel.images = hotel.images.filter((img) => img.publicId !== publicId);
+    if (hotel.coverImage?.publicId === publicId) {
+      hotel.coverImage = hotel.images[0] || undefined;
+      hotel.markModified('coverImage');
+    }
     await hotel.save();
     res.json({ success: true, message: 'Image deleted', data: hotel });
   } catch (err) {

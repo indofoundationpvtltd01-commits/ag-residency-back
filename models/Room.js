@@ -13,7 +13,13 @@ const roomSchema = new mongoose.Schema({
   maxOccupancy: { type: Number, required: true, default: 2, min: 1 },
   totalRooms: { type: Number, default: 1, min: 1 },
   amenities: [{ type: String }],
-  images: [{ url: String, publicId: String }],
+  images: [{
+    publicId: String,
+    original: String,
+    large: String,
+    medium: String,
+    thumbnail: String
+  }],
   bedType: {
     type: String,
     enum: ['Single', 'Double', 'King', 'Twin', 'Queen'],

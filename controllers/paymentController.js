@@ -1,7 +1,7 @@
 const Payment = require('../models/Payment');
 const Booking = require('../models/Booking');
 const { createRazorpayOrder, verifyPaymentSignature, initiateRefund } = require('../utils/razorpayHelper');
-const { sendEmail } = require('../utils/sendEmail');
+const { queueEmail, queueSMS } = require('../utils/notificationQueue');
 const { AppError } = require('../middleware/errorHandler');
 
 // @POST /api/v1/payments/create-order
@@ -73,8 +73,8 @@ const verifyPayment = async (req, res, next) => {
       { new: true }
     ).populate('hotel', 'name city').populate('room', 'name roomType');
 
-    // Send confirmation email
-    sendEmail({
+    // Queue confirmation email asynchronously with backoffs and automatic retries
+    queueEmail({
       to: booking.guestEmail,
       subject: 'AG Residency — Payment Confirmed & Booking Confirmed!',
       templateName: 'paymentReceipt.html',
@@ -90,8 +90,16 @@ const verifyPayment = async (req, res, next) => {
         date: new Date().toDateString(),
       },
     }).catch((err) => {
-      console.error(`📧 Failed to send payment confirmation email to ${booking.guestEmail}:`, err.message);
+      console.error(`📧 Failed to queue payment confirmation email to ${booking.guestEmail}:`, err.message);
     });
+
+    // Queue SMS notification dispatch via Twilio
+    if (booking.guestPhone) {
+      queueSMS({
+        to: booking.guestPhone,
+        body: `Hello ${booking.guestName}, your payment of ₹${(payment.amount / 100).toLocaleString('en-IN')} for ${booking.hotel.name} is verified! Booking confirmed: ${booking._id.toString().substring(18).toUpperCase()}`
+      }).catch(e => console.error("Failed to queue payment verification SMS:", e.message));
+    }
 
     res.json({ success: true, message: 'Payment verified! Booking confirmed.', data: { payment, booking } });
   } catch (err) {

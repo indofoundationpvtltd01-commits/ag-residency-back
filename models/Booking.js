@@ -38,7 +38,16 @@ const bookingSchema = new mongoose.Schema({
   upiAmount: { type: Number, default: 0 },
   residentProof: {
     url: String,
-    publicId: String
+    publicId: String,
+    documentType: {
+      type: String,
+      enum: ['aadhaar', 'passport', 'driving_license', 'voter_id']
+    },
+    verified: {
+      type: Boolean,
+      default: false
+    },
+    uploadedAt: Date
   },
   taxRate: { type: Number, default: 0.12 },
   createdAt: { type: Date, default: Date.now },

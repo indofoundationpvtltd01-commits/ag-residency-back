@@ -63,6 +63,7 @@ const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 500,
   message: { success: false, message: 'Too many requests from this IP' },
+  validate: { trustProxy: false },
 });
 app.use('/api', globalLimiter);
 
@@ -73,7 +74,8 @@ const allowedOrigins = [
   'https://agrooms.in',
   'https://ag-residency-client.vercel.app',
   'http://localhost:5173',
-  'http://localhost:3000'
+  'http://localhost:3000',
+  'http://localhost:3001'
 ].filter(Boolean);
 
 // Add origins from env variable if provided (space or comma separated)
@@ -212,8 +214,10 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
+const { startQueueProcessor } = require('./utils/notificationQueue');
 const server = app.listen(PORT, () => {
   logger.info(`🚀 AG Residency API server running on port ${PORT} [${process.env.NODE_ENV}]`);
+  startQueueProcessor(); // Trigger asynchronous background jobs
 });
 
 // Graceful shutdown
